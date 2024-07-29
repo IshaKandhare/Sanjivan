@@ -77,6 +77,8 @@ app.post("/doctLogin", (req, res) => {
   );
 });
 
+
+// **********************USER REGISTER*******************************//
 app.post("/userRegister", async (req, res) => {
   const { email, username, password } = req.body;
   const uuid = uuidv4();
@@ -102,29 +104,8 @@ app.post("/userRegister", async (req, res) => {
   );
 });
 
-// app.post("/userRegister", async (req, res) => {
-//   const { email, username, password } = req.body;
-//   const uuid = uuidv4();
-//   con.query(
-//     "INSERT INTO users (email, username, password , uuid) VALUES (?, ?, ?,?)",
-//     [email, username, password, uuid],
-//     async (err, result) => {
-//       if (err) {
-//         console.error("Error registering user:", err);
-//         res.status(500).json({ error: "Failed to register user" });
-//         return;
-//       }
-//       try {
-//         const qrPath = await generateQR(uuid, username);
-//         res.send({ message: "Account created successfully", pdfPath: qrPath });
-//       } catch (qrErr) {
-//         console.error("Error generating QR code:", qrErr);
-//         res.status(500).json({ error: "Failed to generate QR code" });
-//       }
-//     }
-//   );
-// });
 
+// *******************************USER LOGIN*************************** //
 app.post("/userLogin", (req, res) => {
   const { username, password } = req.body;
   con.query(
@@ -147,6 +128,7 @@ app.post("/userLogin", (req, res) => {
   );
 });
 
+//*************************** GENERATE QR CODE *****************************//
 const generateQR = async (uuid, username) => {
   const dataToEncode = `http://localhost:3001/scan/${uuid}`;
 
@@ -177,6 +159,7 @@ const generateQR = async (uuid, username) => {
   });
 };
 
+ // ************************** SCAN QR CODE ************************** //
 app.get("/scan/:uuid", (req, res) => {
   const { uuid } = req.params;
 
@@ -208,35 +191,8 @@ app.get("/scan/:uuid", (req, res) => {
   });
 });
 
-app.get('/api/user/:uuid', (req, res) => {
-  const { uuid } = req.params;
-  const sql = 'SELECT * FROM users WHERE uuid = ?';
-  con.query(sql, [uuid], (err, result) => {
-    if (err) {
-      console.error('Error fetching user by UUID:', err);
-      res.status(500).json({ error: 'Failed to fetch user' });
-      return;
-    }
-    if (result.length > 0) {
-      const userProfile = {
-        firstName: result[0].firstName,
-        middleName: result[0].middleName,
-        lastName: result[0].lastName,
-        age: result[0].age,
-        gender: result[0].gender,
-        mobileNumber: result[0].mobileNumber,
-        emergencyMobileNumber: result[0].emergencyMobileNumber,
-        dob: result[0].dob,
-        address: result[0].address,
-        bloodGroup: result[0].bloodGroup,
-      };
-      res.json({ profile: userProfile });
-    } else {
-      res.status(404).json({ error: 'User not found' });
-    }
-  });
-});
-// Endpoint to handle update operation
+
+// ****************** USER PROFILE FORM ***************************//
 app.put('/api/profile/:email', (req, res) => {
   const email = req.params.email; // Extract email from request params
   const {
@@ -289,9 +245,69 @@ app.put('/api/profile/:email', (req, res) => {
     res.send({ message: 'Profile updated successfully!' });
   });
 });
-app.get('/api/doctor/:uuid', (req, res) => {
+
+
+
+// ****************** DOCTOR PROFILE FORM *************************//
+app.put('/api/doctorprofile/:email', (req, res) => {
+  const email = req.params.email;
+  const {
+    firstName,
+    middleName,
+    lastName,
+    age,
+    gender,
+    mobileNumber,
+    emergencyMobileNumber,
+    bloodGroup,
+    dob,
+    address
+  } = req.body;
+
+  const updateQuery = `
+    UPDATE doctor
+    SET 
+      firstName = ?,
+      middleName = ?,
+      lastName = ?,
+      age = ?,
+      gender = ?,
+      mobileNumber = ?,
+      emergencyMobileNumber = ?,
+      bloodGroup = ?,
+      dob = ?,
+      address = ?
+    WHERE
+      email = ?
+  `;
+
+  con.query(updateQuery, [
+    firstName,
+    middleName,
+    lastName,
+    age,
+    gender,
+    mobileNumber,
+    emergencyMobileNumber,
+    bloodGroup,
+    dob,
+    address,
+    email
+  ], (err, result) => {
+    if (err) {
+      console.error('Error updating profile:', err);
+      return res.status(500).send({ message: 'Failed to update profile.', error: err });
+    }
+    res.send({ message: 'Profile updated successfully!' });
+  });
+});
+
+
+// ********************** USER PROFILE*************************** //
+
+app.get('/api/user/:uuid', (req, res) => {
   const { uuid } = req.params;
-  const sql = 'SELECT * FROM doctor WHERE uuid = ?';
+  const sql = 'SELECT * FROM users WHERE uuid = ?';
   con.query(sql, [uuid], (err, result) => {
     if (err) {
       console.error('Error fetching user by UUID:', err);
@@ -311,9 +327,41 @@ app.get('/api/doctor/:uuid', (req, res) => {
         address: result[0].address,
         bloodGroup: result[0].bloodGroup,
       };
-      res.json({ profile: doctorProfile });
+      res.json({ profile: userProfile });
     } else {
       res.status(404).json({ error: 'User not found' });
+    }
+  });
+});
+
+
+
+// *********************** DOCTOR PROFILE ***************************//
+app.get('/api/doctor/:uuid', (req, res) => {
+  const { uuid } = req.params;
+  const sql = 'SELECT * FROM doctor WHERE uuid = ?';
+  con.query(sql, [uuid], (err, result) => {
+    if (err) {
+      console.error('Error fetching user by UUID:', err);
+      res.status(500).json({ error: 'Failed to fetch user' });
+      return;
+    }
+    if (result.length > 0) {
+      const doctorProfile = {
+        firstName: result[0].firstName,
+        middleName: result[0].middleName,
+        lastName: result[0].lastName,
+        age: result[0].age,
+        gender: result[0].gender,
+        mobileNumber: result[0].mobileNumber,
+        emergencyMobileNumber: result[0].emergencyMobileNumber,
+        dob: result[0].dob,
+        address: result[0].address,
+        bloodGroup: result[0].bloodGroup,
+      };
+      res.json({ profile: doctorProfile });
+    } else {
+      res.status(404).json({ error: 'Doctor not found' });
     }
   });
 });

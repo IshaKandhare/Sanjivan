@@ -12,6 +12,7 @@ import Profile from './Screen/Profile';
 import Scan from "./Screen/Scan";
 import DoctorProfile from './Screen/DoctorProfile';
 import {BrowserRouter as Router , Routes , Route} from "react-router-dom";
+import DoctorProfileForm from './Screen/DoctorProfileForm';
 
 function App() {
   return (
@@ -41,9 +42,9 @@ function App() {
             <Route exact path='/profile/:uuid' element={<Profile />} />
             <Route exact path='/doctLogin' element={<DoctLogin />} />
             <Route exact path='/userProfile' element={<UserProfile />} />
-            <Route exact path='/doctorPro' element={<Doctorpro />} />
+            <Route exact path='/doctorPro/:uuid' element={<Doctorpro />} />
             <Route exact path='/doctorProfile/:uuid' element={<DoctorProfile />} />
-
+            <Route exact path='/doctorProfileForm' element={<DoctorProfileForm />} />
            
       </Routes>
     </div>

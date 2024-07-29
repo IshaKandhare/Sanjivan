@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Axios from "axios";
 import "./DoctLogin.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -11,7 +11,7 @@ export default function Login() {
   const [registerStatus, setRegisterStatus] = useState("");
   const [showLoginForm, setShowLoginForm] = useState(true);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false); // State for showing success popup
-
+  const navigate = useNavigate();
   const DoctRegister = (e) => {
     e.preventDefault();
     Axios.post("http://localhost:3001/doctRegister", {
@@ -36,9 +36,14 @@ export default function Login() {
       if (response.data.message) {
         setLoginStatus(response.data.message);
       } else {
-        setLoginStatus(""); // Clear any previous error message
+        // setLoginStatus(""); // Clear any previous error message
         setShowSuccessPopup(true); // Show success popup
         // Optionally, you can set other states or perform actions upon successful login
+
+        setLoginStatus(response.data[0].email);
+        // setShowSuccessPopup(true);
+        const doctorUUID = response.data[0].uuid;
+        navigate(`/doctorProfile/${doctorUUID}`);
       }
     });
   };
@@ -51,7 +56,13 @@ export default function Login() {
   return (
     <div className="container">
       <div className="form-container">
-        <div className="loginForm" style={{ opacity: showLoginForm ? 1 : 0, zIndex: showLoginForm ? 1 : 0 }}>
+        <div
+          className="loginForm"
+          style={{
+            opacity: showLoginForm ? 1 : 0,
+            zIndex: showLoginForm ? 1 : 0,
+          }}
+        >
           <form>
             <h4>Doctor's Login</h4>
             <label htmlFor="username">Username*</label>
@@ -97,7 +108,13 @@ export default function Login() {
             </button>
           </form>
         </div>
-        <div className="loginForm" style={{ opacity: showLoginForm ? 0 : 1, zIndex: showLoginForm ? 0 : 1 }}>
+        <div
+          className="loginForm"
+          style={{
+            opacity: showLoginForm ? 0 : 1,
+            zIndex: showLoginForm ? 0 : 1,
+          }}
+        >
           <form>
             <h4>Register Here</h4>
             <label htmlFor="email">Email Address*</label>
@@ -148,6 +165,12 @@ export default function Login() {
             >
               {registerStatus}
             </h1>
+
+            <Link to="/doctorProfileForm">
+            <button className="btn " style={{"backgroundColor":"#08a29e" , "color":"white"}} >
+              Submit
+            </button>
+            </Link>
             <button className="toggle-buttonc" onClick={toggleForm}>
               Login
             </button>
@@ -158,7 +181,9 @@ export default function Login() {
       {showSuccessPopup && (
         <div className="success-popup">
           <p>Login Successful!</p>
-          <Link to="/doctorPro"><button onClick={() => setShowSuccessPopup(false)}>Close</button></Link>
+          <Link to="/doctorPro/:uuid">
+            <button onClick={() => setShowSuccessPopup(false)}>Close</button>
+          </Link>
         </div>
       )}
     </div>
